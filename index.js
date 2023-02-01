@@ -65,7 +65,7 @@ function defaultRunHookPromise (name, req, rep) {
 
 function defaultOnServerError (rep, err) {
   rep.$sent = true
-  rep.$raw.statusCode = 500
+  rep.$raw.statusCode = 400
   rep.$raw.end(err.message)
   rep.$continify.runHook('onError', err)
 }

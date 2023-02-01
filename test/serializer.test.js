@@ -23,7 +23,7 @@ tap.test('serializer: default handler', async t => {
     payload: { a: 1 }
   })
 
-  t.equal(res.statusCode, 500)
+  t.equal(res.statusCode, 400)
   t.equal(res.payload, 'serializer not fond: [application/json]')
 
   await ins.close()
@@ -127,7 +127,7 @@ tap.test('serializer: custom content type 3', async t => {
     }
   })
 
-  t.equal(statusCode, 500)
+  t.equal(statusCode, 400)
   t.equal(payload, 'serializer error')
   await ins.close()
 })

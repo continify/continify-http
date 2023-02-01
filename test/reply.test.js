@@ -204,7 +204,7 @@ tap.test('reply: throw error', async t => {
   await ins
     .inject({ url: '/reply/aaa', method: 'POST' })
     .then(({ payload, statusCode }) => {
-      t.equal(statusCode, 500)
+      t.equal(statusCode, 400)
       t.equal(payload, 'error payload')
     })
   await ins.close()
@@ -234,7 +234,7 @@ tap.test('reply: throw error', async t => {
   await ins
     .inject({ url: '/reply/aaa', method: 'POST' })
     .then(({ payload, statusCode }) => {
-      t.equal(statusCode, 500)
+      t.equal(statusCode, 400)
       t.equal(payload, 'error payload1111')
     })
   await ins.close()
