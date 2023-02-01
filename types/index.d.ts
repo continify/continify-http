@@ -112,13 +112,11 @@ declare module 'continify' {
     addHook(name: 'beforeSerializer', fn: OnBeforeSerializerHook): Continify
     addHook(name: 'beforeHandler', fn: OnBeforeHandlerHook): Continify
     addHook(name: 'beforeDeserializer', fn: OnBeforeDeserializerHook): Continify
-    addHook(name: 'onServerError', fn: OnServerErrorHook): Continify
 
     runHook(name: 'onRoute', route: Route): Continify
     runHook(name: 'onRequest', req: Request, rep: Reply): Continify
     runHook(name: 'beforeSerializer', req: Request, rep: Reply): Continify
     runHook(name: 'beforeHandler', req: Request, rep: Reply): Continify
     runHook(name: 'beforeDeserializer', req: Request, rep: Reply): Continify
-    runHook(name: 'onServerError', rep: Reply, err: Error): Continify
   }
 }

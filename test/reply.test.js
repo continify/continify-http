@@ -180,3 +180,62 @@ tap.test('reply: beforeHandler', async t => {
     })
   await ins.close()
 })
+
+tap.test('reply: throw error', async t => {
+  const ins = Continify()
+  ins.register(ContinifyHTTP, { port: 6004 })
+
+  t.plan(3)
+  ins.register(async i1 => {
+    i1.addHook('beforeHandler', async function (req, rep) {
+      t.equal(req.url, '/reply/aaa')
+      throw new Error('error payload')
+    })
+    i1.route({
+      method: 'POST',
+      url: '/reply/aaa',
+      handler (req, rep) {
+        t.fail('assert')
+      }
+    })
+  })
+
+  await ins.ready()
+  await ins
+    .inject({ url: '/reply/aaa', method: 'POST' })
+    .then(({ payload, statusCode }) => {
+      t.equal(statusCode, 500)
+      t.equal(payload, 'error payload')
+    })
+  await ins.close()
+})
+
+tap.test('reply: throw error', async t => {
+  const ins = Continify()
+  ins.register(ContinifyHTTP, { port: 6005 })
+
+  t.plan(4)
+  ins.register(async i1 => {
+    i1.addHook('beforeDeserializer', async function (req, rep) {
+      t.equal(req.url, '/reply/aaa')
+      throw new Error('error payload1111')
+    })
+    i1.route({
+      method: 'POST',
+      url: '/reply/aaa',
+      async handler (req, rep) {
+        t.ok(true)
+        return { hello: 'world' }
+      }
+    })
+  })
+
+  await ins.ready()
+  await ins
+    .inject({ url: '/reply/aaa', method: 'POST' })
+    .then(({ payload, statusCode }) => {
+      t.equal(statusCode, 500)
+      t.equal(payload, 'error payload1111')
+    })
+  await ins.close()
+})

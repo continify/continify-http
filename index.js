@@ -53,6 +53,23 @@ function promisify (fn, ...args) {
   })
 }
 
+function defaultRunHookPromise (name, req, rep) {
+  return new Promise((resolve, reject) => {
+    const next = err => {
+      if (err) reject(err)
+      else resolve()
+    }
+    this.runHook(name, req, rep, next)
+  })
+}
+
+function defaultOnServerError (rep, err) {
+  rep.$sent = true
+  rep.$raw.statusCode = 500
+  rep.$raw.end(err.message)
+  rep.$continify.runHook('onError', err)
+}
+
 function defaultHandler (req, rep) {
   rep.statusCode = 404
   rep.end(`Powered By Continify: ${this.$version}`)
@@ -303,17 +320,19 @@ Reply.prototype.send = function (data) {
   this.$payload = data
   const { $continify } = this
 
-  $continify.runHook('beforeDeserializer', this[kReplyRequest], this)
-  let cType = this.getHeader('content-type')
-  if (cType === undefined) {
-    if (typeof this.$payload === 'string') cType = 'text/plain'
-    else cType = 'application/json'
-  }
+  defaultRunHookPromise
+    .call($continify, 'beforeDeserializer', this[kReplyRequest], this)
+    .then(async () => {
+      let cType = this.getHeader('content-type')
+      if (cType === undefined) {
+        if (typeof this.$payload === 'string') cType = 'text/plain'
+        else cType = 'application/json'
+      }
 
-  const deserializer = $continify[kContinifyDeserializer]
-  const fn = deserializer[cType] || defaultDeserializer(cType)
-  promisify(fn.bind($continify), this)
-    .then(() => {
+      const deserializer = $continify[kContinifyDeserializer]
+      const fn = deserializer[cType] || defaultDeserializer(cType)
+
+      await promisify(fn.bind($continify), this)
       // if (typeof this.$payload.pipe === 'function') {
       //   this.$payload.pipe(this.$raw)
       // }
@@ -324,9 +343,7 @@ Reply.prototype.send = function (data) {
 
       this.$raw.end(this.$payload)
     })
-    .catch(err => {
-      $continify.runHook('onServerError', this, err)
-    })
+    .catch(err => defaultOnServerError(this, err))
     .finally(() => {
       const msg = `http request complete ${this.$id}:[${this.method}] ${this.url}`
       $continify.$log.info(msg)
@@ -359,12 +376,12 @@ module.exports = ContinifyPlugin(
     async function handler (req, rep, route) {
       const msg = `http request incoming ${req.$id}:[${req.method}] ${req.url}`
       this.$log.info(msg)
-      this.runHook('onRequest', req, rep)
+      await defaultRunHookPromise.call(this, 'onRequest', req, rep)
       if (rep.$sent) return
 
       const hasPayloadMethod = ['POST', 'PUT']
       if (hasPayloadMethod.includes(req.method)) {
-        this.runHook('beforeSerializer', req, rep)
+        await defaultRunHookPromise.call(this, 'beforeSerializer', req, rep)
         if (rep.$sent) return
 
         const headers = req.$headers
@@ -376,7 +393,7 @@ module.exports = ContinifyPlugin(
         }
       }
 
-      this.runHook('beforeHandler', req, rep)
+      await defaultRunHookPromise.call(this, 'beforeHandler', req, rep)
       if (rep.$sent) return
 
       const res = await route.handler(req, rep)
@@ -388,9 +405,9 @@ module.exports = ContinifyPlugin(
       const req = new Request(id, reqRaw, params, query, route, this)
       const rep = new Reply(id, repRaw, req, route, this)
 
-      handler.call(this, req, rep, route).catch(err => {
-        this.runHook('onServerError', rep, err)
-      })
+      handler
+        .call(this, req, rep, route)
+        .catch(err => defaultOnServerError(rep, err))
     }
 
     function route (options) {
@@ -452,13 +469,6 @@ module.exports = ContinifyPlugin(
       server.close()
     })
 
-    ins.addHook('onServerError', function (rep, err) {
-      rep.$sent = true
-      rep.$raw.statusCode = 500
-      rep.$raw.end(err.message)
-      rep.$continify.runHook('onError', err)
-    })
-
     ins.$avvio._readyQ.unshift(() => {
       ins.$avvio._readyQ.pause()
       server.listen(httpOption.port, httpOption.host, () => {
@@ -483,6 +493,6 @@ module.exports = ContinifyPlugin(
     connectionTimeout: 0,
     routePrefix: '',
     bodyLimit: '1mb',
-    continify: '>=0.1.6'
+    continify: '>=0.1.11'
   }
 )
