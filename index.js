@@ -103,7 +103,6 @@ const requestProperties = {
 const replyProperties = {
   $id: kReplyId,
   $raw: kReplyRaw,
-  $req: kReplyRequest,
   $route: kReplyRoute,
   $continify: kReplyContinify
 }
@@ -200,9 +199,10 @@ Object.defineProperties(Request.prototype, {
   }
 })
 
-function Reply (id, raw, route, ins) {
+function Reply (id, raw, req, route, ins) {
   this[kReplyId] = id
   this[kReplyRaw] = raw
+  this[kReplyRequest] = req
   this[kReplyRoute] = route
   this[kReplyContinify] = ins
 
@@ -220,6 +220,16 @@ function Reply (id, raw, route, ins) {
 }
 
 Object.defineProperties(Reply.prototype, {
+  url: {
+    get () {
+      return this[kReplyRequest].url
+    }
+  },
+  method: {
+    get () {
+      return this[kReplyRequest].method
+    }
+  },
   statusCode: {
     get () {
       return this.$raw.statusCode
@@ -293,7 +303,7 @@ Reply.prototype.send = function (data) {
   this.$payload = data
   const { $continify } = this
 
-  $continify.runHook('beforeDeserializer', this)
+  $continify.runHook('beforeDeserializer', this[kReplyRequest], this)
   let cType = this.getHeader('content-type')
   if (cType === undefined) {
     if (typeof this.$payload === 'string') cType = 'text/plain'
@@ -347,8 +357,6 @@ module.exports = ContinifyPlugin(
     }
 
     async function handler (req, rep, route) {
-      rep.url = req.url
-      rep.method = req.method
       const msg = `http request incoming ${req.$id}:[${req.method}] ${req.url}`
       this.$log.info(msg)
       this.runHook('onRequest', req, rep)
@@ -378,7 +386,7 @@ module.exports = ContinifyPlugin(
     function wrap (reqRaw, repRaw, params, route, query) {
       const id = uuid.v4()
       const req = new Request(id, reqRaw, params, query, route, this)
-      const rep = new Reply(id, repRaw, route, this)
+      const rep = new Reply(id, repRaw, req, route, this)
 
       handler.call(this, req, rep, route).catch(err => {
         this.runHook('onServerError', rep, err)
