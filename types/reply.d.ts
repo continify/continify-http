@@ -10,6 +10,7 @@ export interface Reply {
   $continify: Readonly<Continify>
 
   $sent: boolean
+  $payload?: unknown
 
   url: string
   method: string
