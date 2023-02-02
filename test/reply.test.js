@@ -218,7 +218,9 @@ tap.test('reply: throw error', async t => {
   ins.register(async i1 => {
     i1.addHook('beforeDeserializer', async function (req, rep) {
       t.equal(req.url, '/reply/aaa')
-      throw new Error('error payload1111')
+      const err = new Error('error payload1111')
+      err.code = 401
+      throw err
     })
     i1.route({
       method: 'POST',
@@ -234,7 +236,7 @@ tap.test('reply: throw error', async t => {
   await ins
     .inject({ url: '/reply/aaa', method: 'POST' })
     .then(({ payload, statusCode }) => {
-      t.equal(statusCode, 400)
+      t.equal(statusCode, 401)
       t.equal(payload, 'error payload1111')
     })
   await ins.close()
