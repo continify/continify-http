@@ -125,6 +125,8 @@ const replyProperties = {
 }
 
 function Route (options, ins) {
+  this.$useInBeta = true
+  this.$useInProd = true
   this.method = 'GET'
   this.url = ''
   this.handler = defaultHandler
@@ -412,8 +414,18 @@ module.exports = ContinifyPlugin(
 
     function route (options) {
       const rt = new Route(options, this)
-      router.on(rt.method, rt.url, wrap.bind(this), rt)
 
+      if (this.isBeta() && !rt.$useInBeta) {
+        this.$log.warn(`use beta mode; skip path:[${rt.method}] ${rt.url}`)
+        return this
+      }
+
+      if (this.isProd() && !(rt.$useInBeta && rt.$useInProd)) {
+        this.$log.warn(`use prod mode; skip path:[${rt.method}] ${rt.url}`)
+        return this
+      }
+
+      router.on(rt.method, rt.url, wrap.bind(this), rt)
       this.runHook('onRoute', rt)
       this.$log.info(`http service path:[${rt.method}] ${rt.url}`)
       return this

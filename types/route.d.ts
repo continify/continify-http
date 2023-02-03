@@ -12,6 +12,8 @@ export type RouteHandler = (
 
 export interface RouteOptions {
   $usePrefix?: boolean
+  $useInBeta?: boolean
+  $useInProd?: boolean
 
   url: string
   method?: RouteMethod
