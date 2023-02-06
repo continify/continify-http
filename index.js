@@ -381,8 +381,8 @@ module.exports = ContinifyPlugin(
       await defaultRunHookPromise.call(this, 'onRequest', req, rep)
       if (rep.$sent) return
 
-      const hasPayloadMethod = ['POST', 'PUT']
-      if (hasPayloadMethod.includes(req.method)) {
+      const hasBodyMethods = ['POST', 'PUT', 'PATCH']
+      if (hasBodyMethods.includes(req.method)) {
         await defaultRunHookPromise.call(this, 'beforeSerializer', req, rep)
         if (rep.$sent) return
 

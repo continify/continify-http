@@ -2,7 +2,14 @@ import { Continify } from 'continify'
 import { Request } from './request'
 import { Reply } from './reply'
 
-export type RouteMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type RouteMethod =
+  | 'HEAD'
+  | 'GET'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'OPTIONS'
 
 export type RouteHandler = (
   this: Continify,
