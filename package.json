@@ -1,6 +1,6 @@
 {
   "name": "continify-http",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "index.js",
   "typings": "types/index.d.ts",
   "repository": "https://github.com/continify/continify-http.git",
