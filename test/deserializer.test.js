@@ -27,7 +27,7 @@ tap.test('serializer: default handler', async t => {
   })
 
   t.equal(res.statusCode, 400)
-  t.equal(res.payload, 'deserializer not fond: [application/json]')
+  t.equal(res.json().message, 'deserializer not fond: [application/json]')
 
   await ins.close()
 })

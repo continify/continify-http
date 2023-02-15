@@ -24,7 +24,7 @@ tap.test('serializer: default handler', async t => {
   })
 
   t.equal(res.statusCode, 400)
-  t.equal(res.payload, 'serializer not fond: [application/json]')
+  t.equal(res.json().message, 'serializer not fond: [application/json]')
 
   await ins.close()
 })
@@ -118,7 +118,7 @@ tap.test('serializer: custom content type 3', async t => {
     t.equal(err.message, 'serializer error')
   })
 
-  const { payload, statusCode } = await ins.inject({
+  const res = await ins.inject({
     method: 'POST',
     url: '/hello-world',
     payload: { a: 1 },
@@ -127,7 +127,7 @@ tap.test('serializer: custom content type 3', async t => {
     }
   })
 
-  t.equal(statusCode, 400)
-  t.equal(payload, 'serializer error')
+  t.equal(res.statusCode, 400)
+  t.equal(res.json().message, 'serializer error')
   await ins.close()
 })

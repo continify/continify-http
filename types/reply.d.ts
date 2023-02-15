@@ -26,6 +26,7 @@ export interface Reply {
   hasHeader(name: string): boolean
   removeHeader(name: string): void
 
+  error(errCode: number, message: string, statusCode?: number): void
   send(data: unknown): void
   end(data: unknown): void
 }

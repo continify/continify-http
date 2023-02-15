@@ -64,9 +64,15 @@ function defaultRunHookPromise (name, req, rep) {
 }
 
 function defaultOnServerError (rep, err) {
+  const reply = {
+    message: err.message,
+    code: err.code || 400,
+    error: err.error || 0
+  }
+
   rep.$sent = true
-  rep.$raw.statusCode = err.code || 400
-  rep.$raw.end(err.message)
+  rep.$raw.statusCode = reply.code
+  rep.$raw.end(JSON.stringify(reply))
   rep.$continify.$root.runHook('onError', err)
 }
 
@@ -313,6 +319,13 @@ Reply.prototype.hasHeader = function (name) {
 
 Reply.prototype.removeHeader = function (name) {
   return this.$raw.removeHeader(name)
+}
+
+Reply.prototype.error = function (errCode, message, statusCode) {
+  const err = new Error(message)
+  err.code = statusCode
+  err.error = errCode
+  throw err
 }
 
 Reply.prototype.send = function (data) {

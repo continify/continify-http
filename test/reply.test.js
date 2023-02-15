@@ -201,12 +201,10 @@ tap.test('reply: throw error', async t => {
   })
 
   await ins.ready()
-  await ins
-    .inject({ url: '/reply/aaa', method: 'POST' })
-    .then(({ payload, statusCode }) => {
-      t.equal(statusCode, 400)
-      t.equal(payload, 'error payload')
-    })
+  await ins.inject({ url: '/reply/aaa', method: 'POST' }).then(res => {
+    t.equal(res.statusCode, 400)
+    t.equal(res.json().message, 'error payload')
+  })
   await ins.close()
 })
 
@@ -233,11 +231,35 @@ tap.test('reply: throw error', async t => {
   })
 
   await ins.ready()
-  await ins
-    .inject({ url: '/reply/aaa', method: 'POST' })
-    .then(({ payload, statusCode }) => {
-      t.equal(statusCode, 401)
-      t.equal(payload, 'error payload1111')
+  await ins.inject({ url: '/reply/aaa', method: 'POST' }).then(res => {
+    t.equal(res.statusCode, 401)
+    t.equal(res.json().message, 'error payload1111')
+  })
+  await ins.close()
+})
+
+tap.test('reply: error', async t => {
+  const ins = Continify()
+  ins.register(ContinifyHTTP, { port: 6006 })
+
+  t.plan(4)
+  ins.register(async i1 => {
+    i1.route({
+      method: 'POST',
+      url: '/reply/aaa',
+      async handler (req, rep) {
+        t.ok(true)
+        rep.error(1000, 'reply error message')
+      }
     })
+  })
+
+  await ins.ready()
+  await ins.inject({ url: '/reply/aaa', method: 'POST' }).then(res => {
+    t.equal(res.statusCode, 400)
+    const data = res.json()
+    t.equal(data.message, 'reply error message')
+    t.equal(data.error, 1000)
+  })
   await ins.close()
 })
