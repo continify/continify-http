@@ -217,7 +217,7 @@ tap.test('reply: throw error', async t => {
     i1.addHook('beforeDeserializer', async function (req, rep) {
       t.equal(req.url, '/reply/aaa')
       const err = new Error('error payload1111')
-      err.code = 401
+      err.statusCode = 401
       throw err
     })
     i1.route({
@@ -259,7 +259,7 @@ tap.test('reply: error', async t => {
     t.equal(res.statusCode, 400)
     const data = res.json()
     t.equal(data.message, 'reply error message')
-    t.equal(data.error, 1000)
+    t.equal(data.code, 1000)
   })
   await ins.close()
 })
