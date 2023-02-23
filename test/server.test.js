@@ -3,7 +3,7 @@ const Continify = require('continify')
 const ContinifyHTTP = require('..')
 
 tap.test('server', async t => {
-  const ins = Continify()
+  const ins = Continify({ server: { port: 5100 } })
 
   t.plan(3)
 
@@ -22,7 +22,7 @@ tap.test('server', async t => {
 
 tap.test('server: option override', async t => {
   const host = '0.0.0.0'
-  const port = 5000
+  const port = 5101
   const ins = Continify({
     server: {
       port
@@ -43,7 +43,7 @@ tap.test('server: option override', async t => {
 tap.test('server: maxRequestsPerSocket', async t => {
   const maxRequestsPerSocket = 100
   const ins = Continify()
-  ins.register(ContinifyHTTP, { maxRequestsPerSocket })
+  ins.register(ContinifyHTTP, { maxRequestsPerSocket, port: 5102 })
 
   t.plan(2)
   await ins.ready()

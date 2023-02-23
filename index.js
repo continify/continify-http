@@ -59,7 +59,7 @@ function defaultRunHookPromise (name, req, rep) {
       if (err) reject(err)
       else resolve()
     }
-    this.$root.runHook(name, req, rep, next)
+    this.runHook(name, req, rep, next)
   })
 }
 
@@ -441,7 +441,7 @@ module.exports = ContinifyPlugin(
       }
 
       router.on(rt.method, rt.url, wrap.bind(this), rt)
-      this.$root.runHook('onRoute', rt)
+      this.runHook('onRoute', rt)
       this.$log.info(`http service path:[${rt.method}] ${rt.url}`)
       return this
     }
